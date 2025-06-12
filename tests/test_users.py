@@ -22,9 +22,9 @@ def test_create_user_should_return_409_email_unique_constraint(client, user):
     response = client.post(
         '/users/',
         json={
-            'username': 'test_user',
-            'email': 'Gdel@gmail.com',
-            'password': 'secret',
+            'username': 'Gdel com email repetido',
+            'email': user.email,
+            'password': user.password,
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
@@ -37,9 +37,9 @@ def test_create_user_should_return_409_username_unique_constraint(
     response = client.post(
         '/users/',
         json={
-            'username': 'Gdel',
-            'email': 'test_email@gmail.com',
-            'password': 'secret',
+            'username': user.username,
+            'email': user.email,
+            'password': user.password,
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
@@ -56,9 +56,9 @@ def test_get_user(client, user):
     response = client.get('/users/1')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'username': 'Gdel',
-        'email': 'Gdel@gmail.com',
-        'id': 1,
+        'username': user.username,
+        'email': user.email,
+        'id': user.id,
     }
 
 
@@ -112,6 +112,20 @@ def test_update_integrity_error(client, user, token):
     }
 
 
+def test_update_user_with_wrong_token(client, user_without_token, token):
+    response = client.put(
+        f'/users/{user_without_token.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'bob',
+            'email': 'bob@example.com',
+            'password': 'mynewpassword',
+        },
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
+
+
 def test_delete_user(client, user, token):
     response = client.delete(
         f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
@@ -120,3 +134,12 @@ def test_delete_user(client, user, token):
     assert response.json() == {
         'message': 'User deleted successfully',
     }
+
+
+def test_delete_user_wrong_token(client, user_without_token, token):
+    response = client.delete(
+        f'/users/{user_without_token.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
