@@ -58,7 +58,7 @@ async def test_create_todo_error(session, user: User):
 @pytest.mark.asyncio
 async def test_list_todos_should_return_5_todos(session, client, user, token):
     expected_todos = 5
-    session.add_all(TodoFactory.create_batch(6, user_id=user.id))
+    session.add_all(TodoFactory.create_batch(5, user_id=user.id))
     await session.commit()
 
     response = client.get(
@@ -74,7 +74,7 @@ async def test_list_todos_pagination_should_return_2_todos(
     session, client, user, token
 ):
     expected_todos = 2
-    session.add_all(TodoFactory.create_batch(6, user_id=user.id))
+    session.add_all(TodoFactory.create_batch(5, user_id=user.id))
     await session.commit()
 
     response = client.get(
@@ -91,7 +91,7 @@ async def test_list_todos_filter_title_should_return_5_todos(
 ):
     expected_todos = 5
     session.add_all(
-        TodoFactory.create_batch(6, user_id=user.id, title='Test todo 1')
+        TodoFactory.create_batch(5, user_id=user.id, title='Test todo 1')
     )
     await session.commit()
 
@@ -109,7 +109,7 @@ async def test_list_todos_filter_description_should_return_5_todos(
 ):
     expected_todos = 5
     session.add_all(
-        TodoFactory.create_batch(6, user_id=user.id, description='description')
+        TodoFactory.create_batch(5, user_id=user.id, description='description')
     )
     await session.commit()
 
@@ -127,7 +127,7 @@ async def test_list_todos_filter_state_should_return_5_todos(
 ):
     expected_todos = 5
     session.add_all(
-        TodoFactory.create_batch(6, user_id=user.id, state=TodoState.draft)
+        TodoFactory.create_batch(5, user_id=user.id, state=TodoState.draft)
     )
     await session.commit()
 
@@ -146,7 +146,7 @@ async def test_list_todos_filter_combined_should_return_5_todos(
     expected_todos = 5
     session.add_all(
         TodoFactory.create_batch(
-            6,
+            5,
             user_id=user.id,
             title='Test todo combined',
             description='combined description',
