@@ -86,23 +86,15 @@ def test_update_user(client, user, token):
     }
 
 
-def test_update_integrity_error(client, user, token):
-    client.post(
-        '/users',
-        json={
-            'username': 'gdel_vieira_lima',
-            'email': 'gdelvieira@gmail.com',
-            'password': 'secret',
-        },
-    )
-
+def test_update_integrity_error(client, user, user_without_token, token):
+    other_user = user_without_token
     # changing fixture user to have the same username and email
     response_update = client.put(
         f'/users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'gdel_vieira_lima',
-            'email': 'gdelvieira@gmail.com',
+            'username': other_user.username,
+            'email': other_user.email,
             'password': 'secret',
         },
     )

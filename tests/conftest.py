@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 import factory
+import factory.fuzzy
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
