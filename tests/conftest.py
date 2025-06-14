@@ -25,18 +25,6 @@ class UserFactory(factory.Factory):
     password = factory.LazyAttribute(lambda obj: f'{obj.username}_password')
 
 
-@pytest.fixture
-def client(session):
-    def get_session_override():
-        return session
-
-    with TestClient(app) as client:
-        app.dependency_overrides[get_session] = get_session_override
-        yield client
-
-    app.dependency_overrides.clear()
-
-
 @pytest_asyncio.fixture
 async def session():
     engine = create_async_engine(
@@ -52,6 +40,19 @@ async def session():
 
     async with engine.begin() as conn:
         await conn.run_sync(table_registry.metadata.drop_all)
+
+
+@pytest.fixture
+def client(session):
+    def get_session_override():
+        return session
+
+    app.dependency_overrides[get_session] = get_session_override
+
+    with TestClient(app) as client:
+        yield client
+
+    app.dependency_overrides.clear()
 
 
 @contextmanager
@@ -105,7 +106,7 @@ async def user_without_token(session):
 @pytest.fixture
 def token(client, user):
     response = client.post(
-        'auth/token',
+        '/auth/token',
         data={
             'username': user.email,
             'password': user.clean_password,

@@ -2,8 +2,9 @@ from http import HTTPStatus
 
 import factory.fuzzy
 import pytest
+from sqlalchemy import select
 
-from guara.models import Todo, TodoState
+from guara.models import Todo, TodoState, User
 
 
 class TodoFactory(factory.Factory):
@@ -13,25 +14,45 @@ class TodoFactory(factory.Factory):
     title = factory.Faker('text')
     description = factory.Faker('text')
     state = factory.fuzzy.FuzzyChoice(TodoState)
-    user_id = 1
+    user_id = None
 
 
-def test_create_todo(client, token):
-    response = client.post(
-        '/todos/',
-        headers={'Authorization': f'Bearer {token}'},
-        json={
-            'title': 'Test Todo',
-            'description': 'Test Description',
-            'state': 'draft',
-        },
-    )
+def test_create_todo(client, token, mock_db_time):
+    with mock_db_time(model=Todo) as time:
+        response = client.post(
+            '/todos/',
+            headers={'Authorization': f'Bearer {token}'},
+            json={
+                'title': 'Test todo',
+                'description': 'Test todo description',
+                'state': 'draft',
+            },
+        )
+
     assert response.json() == {
         'id': 1,
-        'title': 'Test Todo',
-        'description': 'Test Description',
+        'title': 'Test todo',
+        'description': 'Test todo description',
         'state': 'draft',
+        'created_at': time.isoformat(),
+        'updated_at': time.isoformat(),
     }
+
+
+@pytest.mark.asyncio
+async def test_create_todo_error(session, user: User):
+    todo = Todo(
+        title='Test Todo',
+        description='Test Desc',
+        state='test',
+        user_id=user.id,
+    )
+
+    session.add(todo)
+    await session.commit()
+
+    with pytest.raises(LookupError):
+        await session.scalar(select(Todo))
 
 
 @pytest.mark.asyncio
@@ -150,6 +171,34 @@ async def test_list_todos_filter_combined_should_return_5_todos(
     )
 
     assert len(response.json()['todos']) == expected_todos
+
+
+@pytest.mark.asyncio
+async def test_list_todos_should_return_all_expected_fields(
+    session, client, user, token, mock_db_time
+):
+    with mock_db_time(model=Todo) as time:
+        todo = TodoFactory.create(user_id=user.id)
+        session.add(todo)
+        await session.commit()
+
+    await session.refresh(todo)
+    response = client.get(
+        '/todos/',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()['todos'] == [
+        {
+            'created_at': time.isoformat(),
+            'description': todo.description,
+            'id': todo.id,
+            'state': todo.state.value,
+            'title': todo.title,
+            'updated_at': time.isoformat(),
+        }
+    ]
 
 
 def test_patch_todo_error(client, token):
