@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,7 +48,7 @@ async def create_todo(
 async def list_todos(
     session: Session,
     user: CurrentUser,
-    todo_filter: Annotated[FilterTodo, Depends()],
+    todo_filter: Annotated[FilterTodo, Query()],
 ):
     query = select(Todo).where(Todo.user_id == user.id)
 
@@ -73,8 +73,8 @@ async def list_todos(
 @router.patch('/{todo_id}', response_model=TodoPublic)
 async def update_todo(
     todo_id: int,
-    user: CurrentUser,
     session: Session,
+    user: CurrentUser,
     todo: TodoUpdate,
 ):
     db_todo = await session.scalar(
@@ -100,8 +100,8 @@ async def update_todo(
 @router.delete('/{todo_id}', response_model=Message)
 async def delete_todo(
     todo_id: int,
-    user: CurrentUser,
     session: Session,
+    user: CurrentUser,
 ):
     db_todo = await session.scalar(
         select(Todo).where(Todo.user_id == user.id, Todo.id == todo_id)

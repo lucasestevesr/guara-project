@@ -34,7 +34,7 @@ class Token(BaseModel):
 
 
 class FilterPage(BaseModel):
-    offset: int = 1
+    offset: int = 0
     limit: int = 100
 
 

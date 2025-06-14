@@ -29,7 +29,7 @@ async def test_create_user(session, mock_db_time):
 
 
 @pytest.mark.asyncio
-async def test_create_todo(session, user):
+async def test_create_todo(session, user: User):
     todo = Todo(
         title='Test Todo',
         description='Test Description',
