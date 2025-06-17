@@ -48,6 +48,8 @@ async def test_create_todo(session, user: User):
         'description': 'Test Description',
         'state': 'draft',
         'user_id': user.id,
+        'created_at': todo.created_at,
+        'updated_at': todo.updated_at,
     }
 
 

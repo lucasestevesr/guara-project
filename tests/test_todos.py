@@ -3,6 +3,7 @@ from http import HTTPStatus
 import factory.fuzzy
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import StatementError
 
 from guara.models import Todo, TodoState, User
 
@@ -49,10 +50,15 @@ async def test_create_todo_error(session, user: User):
     )
 
     session.add(todo)
-    await session.commit()
 
-    with pytest.raises(LookupError):
-        await session.scalar(select(Todo))
+    with pytest.raises((ValueError, StatementError)):
+        await session.commit()
+
+    await session.rollback()
+
+    result = await session.scalars(select(Todo))
+    todos = result.all()
+    assert todos == []
 
 
 @pytest.mark.asyncio
