@@ -23,7 +23,7 @@ def read_root_html():
     return """
     <html>
         <head>
-            <title>Hello World!</title>
+            <title>Some HTML in here</title>
         </head>
         <body>
             <h1>Look ma! HTML!</h1>
